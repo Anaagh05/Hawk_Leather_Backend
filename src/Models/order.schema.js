@@ -27,8 +27,8 @@ const orderSchema = new mongoose.Schema({
   },
   orderStatus: {
     type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-    default: 'pending'
+    enum: ['processing', 'shipped', 'delivered', 'cancelled'],
+    default: 'processing'
   },
   shippingAddress: {
     street: String,
@@ -44,7 +44,7 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['cod', 'online', 'card'],
+    enum: ['cod', 'online'],
     default: 'cod'
   }
 }, {

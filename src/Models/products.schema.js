@@ -52,6 +52,11 @@ const productSchema = new mongoose.Schema({
   discount:{
     type:Number,
     required:true
+  },
+  gender:{
+    type:String,
+    required:true,
+    enum:["Men","Women","Unisex"]
   }
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt fields

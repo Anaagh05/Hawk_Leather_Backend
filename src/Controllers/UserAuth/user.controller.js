@@ -569,7 +569,9 @@ const addReview = async (req, res)=>{
             comment: comment
         })
 
-        if (!review){
+        const newReview = await review.save();
+
+        if (!newReview){
             return res.status(500).json({
                 message: "Internal server error while publising the review."
             })
@@ -577,7 +579,7 @@ const addReview = async (req, res)=>{
 
         return res.status(200).json({
             message: "Review added successfully",
-            review: review
+            review: newReview
         })
     }
     catch(err){
@@ -595,7 +597,7 @@ const getReviews = async (req, res)=>{
         // 1. Fetching all the user reviews:
         const allReviews = await Review.find().populate({
             path: 'userId',
-            select: 'userName occupation createdAt'
+            select: 'userName occupation'
         })
         
         // 2. Just send the resposne:

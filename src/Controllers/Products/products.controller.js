@@ -6,13 +6,13 @@ const { uploadOnCloudinary, deleteFromCloudinary } = require("../../utils/cloudi
 // ============================================
 const createProduct = async (req, res) => {
     try {
-        const { categoryName, itemName, itemPrice, itemDescription, itemFeatures, discount } = req.body;
+        const { categoryName, itemName, itemPrice, itemDescription, itemFeatures, discount, gender } = req.body;
 
         // Validate required fields
-        if (!categoryName || !itemName || !itemPrice || !itemDescription) {
+        if (!categoryName || !itemName || !itemPrice || !itemDescription || !gender) {
             return res.status(400).json({
                 success: false,
-                message: "All required fields must be provided (categoryName, itemName, itemPrice, itemDescription)"
+                message: "All required fields must be provided (categoryName, itemName, itemPrice, itemDescription, gender)"
             });
         }
         // console.log("Category Name:",categoryName);
@@ -57,6 +57,11 @@ const createProduct = async (req, res) => {
             }
         }
 
+        let newgender = gender.toLowerCase();
+        newgender = newgender.charAt(0).toUpperCase() + newgender.slice(1);
+
+        // console.log("Gender: ",newgender);
+
         // Create new product
         const newProduct = await Product.create({
             categoryName,
@@ -66,11 +71,12 @@ const createProduct = async (req, res) => {
             itemFeatures: featuresArray,
             itemImageUrl: cloudinaryResponse.secure_url,
             itemImageCloudinaryId: cloudinaryResponse.public_id,
-            discount: Number(discount) || 0
+            discount: Number(discount) || 0,
+            gender: newgender
         });
-        
-         // Remove sensitive fields from newProduct object before sending response
-         const { itemImageCloudinaryId, createdAt, updatedAt, ...sanitizedProduct } = newProduct.toObject();
+
+        // Remove sensitive fields from newProduct object before sending response
+        const { itemImageCloudinaryId, createdAt, updatedAt, ...sanitizedProduct } = newProduct.toObject();
         return res.status(201).json({
             success: true,
             message: "Product created successfully",
@@ -93,7 +99,7 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { categoryName, itemName, itemPrice, itemDescription, itemFeatures, discount } = req.body;
+        const { categoryName, itemName, itemPrice, itemDescription, itemFeatures, discount, gender } = req.body;
 
         // Find existing product
         const existingProduct = await Product.findById(id);
@@ -122,6 +128,11 @@ const updateProduct = async (req, res) => {
         if (itemPrice) updateData.itemPrice = Number(itemPrice);
         if (itemDescription) updateData.itemDescription = itemDescription;
         if (discount !== undefined) updateData.discount = Number(discount);
+        if (gender) {
+            let newgender = gender.toLowerCase();
+            newgender = newgender.charAt(0).toUpperCase() + newgender.slice(1);
+            updateData.gender = newgender;
+        }
 
         // Handle itemFeatures update
         if (itemFeatures) {
@@ -145,7 +156,7 @@ const updateProduct = async (req, res) => {
 
             // Upload new image
             const cloudinaryResponse = await uploadOnCloudinary(
-                req.file.path, 
+                req.file.path,
                 categoryName || existingProduct.categoryName
             );
 
@@ -247,7 +258,7 @@ const detailProduct = async (req, res) => {
 
     } catch (err) {
         console.error("Error in detailProduct:", err);
-        
+
         // Handle invalid MongoDB ObjectId
         if (err.kind === 'ObjectId') {
             return res.status(400).json({
@@ -270,7 +281,7 @@ const detailProduct = async (req, res) => {
 const getallProduct = async (req, res) => {
     try {
         // Extract category query parameter
-        const { category = 'none' } = req.query;
+        const { category = 'none', gender = "none" } = req.query;
 
         // Build filter object
         const filter = {};
@@ -284,6 +295,12 @@ const getallProduct = async (req, res) => {
                 });
             }
             filter.categoryName = category;
+        }
+
+        if (gender !== 'none') {
+            let newGender = gender.toLowerCase();
+            newGender = newGender.charAt(0).toUpperCase() + newGender.slice(1);
+            filter.gender = newGender;
         }
 
         // Get all products based on filter
