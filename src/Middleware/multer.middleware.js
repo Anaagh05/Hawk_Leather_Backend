@@ -1,43 +1,41 @@
 const multer = require("multer");
 
-// Generate the random name:
-const randomStr = (length) => {
-  let str = "aabcddeffghijkllmnopqrsstuvwxyz";
-  let randStr = "";
+// Use memory storage for serverless environments
+const storage = multer.memoryStorage();
 
-  for (let i = 0; i < length; i++) {
-    randStr += str[Math.floor(Math.random() * str.length)];
-  }
-  return randStr;
-};
-
-// Create the storage function which handle the destination and the file name:
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./public");
-  },
-  filename: (req, file, cb) => {
-    cb(null, randomStr(5) + "-" + file.originalname);
-  },
-});
-
-// Checking the file type:
+// File filter to allow only image files
 const fileFilter = (req, file, cb) => {
-  if (
-    [
-      "image/jpeg",
-      "image/png",
-      "image/jpg",
-      "image/webp",
-    ].includes(file.mimetype)
-  ) {
+  if (["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(file.mimetype)) {
     cb(null, true);
-  } else cb(null, false);
+  } else {
+    cb(new Error('Invalid file type. Only JPEG, JPG, PNG, and WebP files are allowed.'), false);
+  }
 };
 
 const upload = multer({
   storage,
   fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
 
-module.exports = upload;
+// Middleware to handle file upload and errors
+const handleFileUpload = (req, res, next) => {
+  upload.single('itemImageUrl')(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({
+        success: false,
+        message: err.message || 'File upload error'
+      });
+    } else if (err) {
+      return res.status(500).json({
+        success: false,
+        message: err.message || 'Error processing file'
+      });
+    }
+    next();
+  });
+};
+
+module.exports = handleFileUpload;

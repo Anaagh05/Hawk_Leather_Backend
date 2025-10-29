@@ -32,8 +32,8 @@ const createProduct = async (req, res) => {
             });
         }
 
-        // Upload image to Cloudinary
-        const cloudinaryResponse = await uploadOnCloudinary(req.file.path, categoryName);
+        // Upload image to Cloudinary from buffer
+        const cloudinaryResponse = await uploadOnCloudinary(req.file, categoryName);
 
         if (!cloudinaryResponse) {
             return res.status(500).json({
@@ -154,9 +154,9 @@ const updateProduct = async (req, res) => {
                 await deleteFromCloudinary(existingProduct.itemImageCloudinaryId);
             }
 
-            // Upload new image
+            // Upload new image from buffer
             const cloudinaryResponse = await uploadOnCloudinary(
-                req.file.path,
+                req.file,
                 categoryName || existingProduct.categoryName
             );
 

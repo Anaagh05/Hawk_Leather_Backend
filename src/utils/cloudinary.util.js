@@ -1,41 +1,51 @@
 const cloudinary = require("cloudinary").v2;
-const fs = require('fs');
+const { Readable } = require('stream');
+const streamifier = require('streamifier');
 require("dotenv").config({
-    path:"./.env"
-})
+    path: "./.env"
+});
 
 cloudinary.config({
-    cloud_name:process.env.CLOUDINARY_NAME,
-    api_key:process.env.CLOUDINARY_API_KEY,
-    api_secret:process.env.CLOUDINARY_API_SECRET
-})
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-const uploadOnCloudinary = async (localFilePath,category)=>{
-    try{
-        if(!localFilePath) {
-            // console.log(localFilePath);
+const uploadOnCloudinary = async (file, category) => {
+    try {
+        if (!file || !file.buffer) {
+            console.error('No file buffer provided');
             return null;
         }
 
-        // upload the file on cloudinary:
-        const response = await cloudinary.uploader.upload(localFilePath,{
-            resource_type:"auto",
-            folder: `HawkExports/${category=='Bags'?"Bags": (category=='Purses'?"Purses":"Belts")}`
+        // Create a promise to handle the upload
+        return new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    resource_type: 'auto',
+                    folder: `HawkExports/${category === 'Bags' ? 'Bags' : (category === 'Purses' ? 'Purses' : 'Belts')}`
+                },
+                (error, result) => {
+                    if (error) {
+                        console.error('Cloudinary upload error:', error);
+                        return reject(error);
+                    }
+                    resolve(result);
+                }
+            );
+
+            // Convert buffer to stream and pipe to Cloudinary
+            const bufferStream = new Readable();
+            bufferStream.push(file.buffer);
+            bufferStream.push(null); // Signals the end of the stream
+            
+            bufferStream.pipe(uploadStream);
         });
-
-        // File upload successfull:
-        // console.log("File is uploaded on cloudinary :",response.url);
-        fs.unlinkSync(localFilePath);
-        return response;
-
-    }
-    catch(error){
-
-        console.log("Error in cloudinary catch",error,localFilePath);
-        fs.unlinkSync(localFilePath)  // remove the local saved temporary file as the upload operation got failed.
+    } catch (error) {
+        console.error('Error in uploadOnCloudinary:', error);
         return null;
     }
-}
+};
 
 
 const deleteFromCloudinary = async (public_id)=>{
