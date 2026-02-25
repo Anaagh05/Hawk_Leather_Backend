@@ -23,7 +23,7 @@ const uploadOnCloudinary = async (file, category) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
                     resource_type: 'auto',
-                    folder: `HawkExports/${category === 'Bags' ? 'Bags' : (category === 'Purses' ? 'Purses' : 'Belts')}`
+                    folder: `HawkExports/${category === 'Bags' ? 'Bags' : (category === 'Purses' ? 'Purses' : (category === 'Belts'?'Belts':'Leather'))}`
                 },
                 (error, result) => {
                     if (error) {

@@ -27,10 +27,14 @@ const productRouter = require("./Routers/Products/product.router");
 const userRouter = require("./Routers/Users/user.router");
 const userCart = require("./Routers/Cart/cart.router");
 const orderRouter = require("./Routers/Orders/order.router");
+const leatherRouter = require("./Routers/Leather/leather.router");
+
 
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/cart", userCart);
 app.use("/api/v1/orders", orderRouter);
+app.use("/api/v1/leather",leatherRouter)
+
 
 module.exports = app;
