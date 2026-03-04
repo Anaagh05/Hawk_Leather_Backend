@@ -6,7 +6,27 @@ const leatherControllers = {
     // GET /all - Return all leather products
     getProducts: async (req, res) => {
         try {
-            const products = await Leather.find({});
+            
+            // Handlig the query parameter:
+            const {category = "none"} = req.query;
+
+            // Create the dynamic filter:
+            let filter = {};
+
+            // Check if the category present:
+
+            if(category !== "none"){
+                if(!['shoe_upper','sports_leather','upholestry','garment_and_goods'].includes(category)){
+                    return res.status(400).json({
+                        success: false,
+                        message: "Invalid category. Must be one of: shoe_upper, sports_leather, upholestry, garment_and_goods"
+                    });
+                }
+                filter.itemCategory = category;
+            }
+
+
+            const products = await Leather.find(filter);
 
             if (!products || products.length === 0) {
                 return res.status(404).json({
@@ -21,6 +41,7 @@ const leatherControllers = {
                 image: product.itemImageUrl,
                 description: product.itemDescription,
                 features: product.itemFeatures,
+                category:product.itemCategory
             }));
 
             return res.status(200).json({
@@ -41,13 +62,13 @@ const leatherControllers = {
     // POST / - Create a new leather product
     createProduct: async (req, res) => {
         try {
-            const { title, description, features } = req.body;
+            const { title, description, features,category } = req.body;
 
             // Validate required text fields
-            if (!title || !description) {
+            if (!title || !description || !category) {
                 return res.status(400).json({
                     success: false,
-                    message: "Title and description are required.",
+                    message: "Title and description and category are required.",
                 });
             }
 
@@ -58,29 +79,6 @@ const leatherControllers = {
                     message: "Product image is required.",
                 });
             }
-
-            // Parse features - form data sends arrays as comma-separated string or repeated fields
-            // let parsedFeatures = [];
-            // if (features) {
-            //     if (Array.isArray(features)) {
-            //         // multer already parsed repeated form fields into an array
-            //         parsedFeatures = features.map((f) => f.trim()).filter((f) => f.length > 0);
-            //     } else if (typeof features === "string") {
-            //         // single string — could be comma-separated or JSON stringified array
-            //         try {
-            //             const parsed = JSON.parse(features);
-            //             parsedFeatures = Array.isArray(parsed)
-            //                 ? parsed.map((f) => f.trim()).filter((f) => f.length > 0)
-            //                 : [features.trim()].filter((f) => f.length > 0);
-            //         } catch {
-            //             // plain comma-separated string
-            //             parsedFeatures = features
-            //                 .split(",")
-            //                 .map((f) => f.trim())
-            //                 .filter((f) => f.length > 0);
-            //         }
-            //     }
-            // }
 
             // Parse itemFeatures if it's a string
             let parsedFeatures = [];
@@ -115,6 +113,7 @@ const leatherControllers = {
                 itemName: title.trim(),
                 itemDescription: description.trim(),
                 itemFeatures: parsedFeatures,
+                itemCategory:category.trim(),
                 itemImageUrl: cloudinaryResponse.secure_url,
                 itemImageCloudinaryId: cloudinaryResponse.public_id,
             });
@@ -126,6 +125,7 @@ const leatherControllers = {
                     id: newProduct._id,
                     title: newProduct.itemName,
                     image: newProduct.itemImageUrl,
+                    category: newProduct.itemCategory,
                     description: newProduct.itemDescription,
                     features: newProduct.itemFeatures,
                 },
@@ -154,7 +154,7 @@ const leatherControllers = {
                 });
             }
 
-            const { title, description, features } = req.body;
+            const { title, description, features,category } = req.body;
             const updateData = {};
 
             // Update title if provided
@@ -165,6 +165,11 @@ const leatherControllers = {
             // Update description if provided
             if (description && description.trim().length > 0) {
                 updateData.itemDescription = description.trim();
+            }
+
+            // Update category if provided
+            if (category && category.trim().length > 0) {
+                updateData.itemCategory = category.trim();
             }
 
             // Update features if provided — overwrites all previous features
@@ -233,6 +238,7 @@ const leatherControllers = {
                     id: updatedProduct._id,
                     title: updatedProduct.itemName,
                     image: updatedProduct.itemImageUrl,
+                    category: updatedProduct.itemCategory,
                     description: updatedProduct.itemDescription,
                     features: updatedProduct.itemFeatures,
                 },

@@ -10,7 +10,7 @@ const leatherSchema = new mongoose.Schema({
   },
   itemDescription: {
     type: String,
-    required: [true, 'Item description is required'],
+    required: [true, 'Item description is required.'],
     trim: true,
     maxlength: [500, 'Description cannot exceed 2000 characters']
   },
@@ -23,6 +23,12 @@ const leatherSchema = new mongoose.Schema({
       },
       message: 'Features cannot contain empty strings'
     }
+  },
+  itemCategory:{
+    type:String,
+    required: [true, 'Item category is required.'],
+    trim:true,
+    enum:['shoe_upper','sports_leather','upholestry','garment_and_goods']
   },
   itemImageUrl: {
     type: String,
