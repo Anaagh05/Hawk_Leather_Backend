@@ -8,6 +8,6 @@ leatherRouter.get("/all",leatherControllers.getProducts);
 leatherRouter.post("/", upload, leatherControllers.createProduct);
 leatherRouter.put("/:id", upload, leatherControllers.updateProduct);
 leatherRouter.delete("/:id",leatherControllers.deleteProduct);
-
+leatherRouter.get("/unique",leatherControllers.uniqueCategory);
 
 module.exports = leatherRouter;

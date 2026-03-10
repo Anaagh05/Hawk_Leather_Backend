@@ -8,6 +8,7 @@ const leatherControllers = {
         try {
             
             // Handlig the query parameter:
+            console.log("category: ",req.query.category)
             const {category = "none"} = req.query;
 
             // Create the dynamic filter:
@@ -16,12 +17,12 @@ const leatherControllers = {
             // Check if the category present:
 
             if(category !== "none"){
-                if(!['shoe_upper','sports_leather','upholestry','garment_and_goods'].includes(category)){
-                    return res.status(400).json({
-                        success: false,
-                        message: "Invalid category. Must be one of: shoe_upper, sports_leather, upholestry, garment_and_goods"
-                    });
-                }
+                // if(!['shoe_upper','sports_leather','upholestry','garment_and_goods'].includes(category)){
+                //     return res.status(400).json({
+                //         success: false,
+                //         message: "Invalid category. Must be one of: shoe_upper, sports_leather, upholestry, garment_and_goods"
+                //     });
+                // }
                 filter.itemCategory = category;
             }
 
@@ -305,6 +306,27 @@ const leatherControllers = {
             });
         }
     },
+    
+    // GET /unique
+    
+    uniqueCategory: async (req, res) => {
+        try {
+            const categories = await Leather.distinct("itemCategory");
+
+            return res.status(200).json({
+                success: true,
+                message: "Returned all unique categories.",
+                data: categories
+            });
+
+        } catch (err) {
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error",
+                error: err.message,
+            });
+        }
+    }
 };
 
 module.exports = leatherControllers;

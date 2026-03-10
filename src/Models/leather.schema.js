@@ -27,8 +27,7 @@ const leatherSchema = new mongoose.Schema({
   itemCategory:{
     type:String,
     required: [true, 'Item category is required.'],
-    trim:true,
-    enum:['shoe_upper','sports_leather','upholestry','garment_and_goods']
+    trim:true
   },
   itemImageUrl: {
     type: String,
